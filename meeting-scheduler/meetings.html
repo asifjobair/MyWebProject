@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>All Meetings - Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      body {
+        font-family: "Inter", sans-serif;
+        background: #f0f4f8;
+      }
+      .glass-nav {
+        background: rgba(25, 60, 180, 0.85);
+        backdrop-filter: blur(12px);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+        transition: all 0.3s ease;
+      }
+      .glass-nav:hover {
+        backdrop-filter: blur(15px);
+      }
+      .logout-btn {
+        transition: all 0.3s ease;
+      }
+      .logout-btn:hover {
+        transform: scale(1.05);
+        background-color: #ef4444;
+      }
+      aside {
+        position: fixed;
+        top: 64px;
+        left: 0;
+        bottom: 0;
+        overflow-y: auto;
+        background: linear-gradient(180deg, #ffffff, #f8fafc);
+        border-right: 1px solid #e5e7eb;
+        transition: all 0.3s ease;
+      }
+      aside a {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 0.75rem;
+        border-radius: 0.5rem;
+        color: #374151;
+        font-weight: 500;
+        transition: all 0.2s ease;
+      }
+      aside a:hover {
+        background: #e0e7ff;
+        transform: translateX(4px);
+      }
+      aside a.active {
+        background: #2563eb;
+        color: white;
+        font-weight: 600;
+      }
+      main {
+        margin-left: 16rem;
+        padding: 1.5rem;
+        min-height: calc(100vh - 64px);
+      }
+      table th,
+      table td {
+        font-size: 0.875rem;
+      }
+      table tbody tr:hover {
+        background-color: rgba(37, 99, 235, 0.1);
+      }
+      .table-container {
+        overflow-x: auto;
+        max-height: 75vh;
+      }
+      th.sortable {
+        cursor: pointer;
+      }
+      th.sortable:hover {
+        background-color: #dbeafe;
+      }
+      .sort-indicator {
+        margin-left: 6px;
+        font-size: 0.75rem;
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- Navbar -->
+    <header
+      class="glass-nav text-white px-6 py-4 flex justify-between items-center sticky top-0 z-50 h-16"
+    >
+      <div class="flex items-center gap-3">
+        <img
+          src="assests/logo.png"
+          alt="Logo"
+          class="w-10 h-10 rounded-full border border-white"
+        />
+        <h1 class="text-2xl font-bold tracking-wide">Meeting Scheduler</h1>
+      </div>
+      <button
+        id="logoutBtn"
+        class="logout-btn bg-red-500 hover:bg-red-600 px-4 py-2 rounded-full font-semibold shadow-md"
+      >
+        Logout
+      </button>
+    </header>
+
+    <!-- Sidebar -->
+    <aside class="w-64 p-4 space-y-4 shadow-md">
+      <nav class="space-y-2">
+        <a href="index.html">📊 Dashboard</a>
+        <a href="meeting-minutes.html">📝 Meeting Minutes</a>
+        <a href="add-meeting.html">➕ Add Meeting</a>
+        <a href="all-meeting-minutes.html">📘 All Minutes</a>
+        <a href="meetings.html" class="active">📑 All Meetings</a>
+        <a href="zoom-meeting.html">🎥 New Zoom Meeting</a>
+        <a href="all-zoom-meetings.html">🎥 All Zoom Meeting</a>
+        <a href="companies.html">🏢 Companies</a>
+        <a href="users.html">👥 Users</a>
+      </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main>
+      <section class="max-w-6xl mx-auto bg-white shadow-lg rounded-2xl p-5">
+        <div class="flex justify-between items-center mb-4">
+          <div class="flex items-center gap-3">
+            <h2 class="text-xl font-bold text-gray-800">All Meetings</h2>
+            <span id="loadingText" class="text-gray-500 text-sm hidden"
+              >⏳ Refreshing...</span
+            >
+          </div>
+          <div class="flex gap-2 items-center">
+            <input
+              type="text"
+              id="searchInput"
+              placeholder="🔍 Search..."
+              class="border border-gray-300 rounded-lg px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+            />
+            <button
+              onclick="loadMeetings()"
+              id="refreshBtn"
+              class="bg-blue-500 text-white rounded-lg shadow hover:bg-blue-600 px-3 py-1"
+            >
+              🔄
+            </button>
+          </div>
+        </div>
+
+        <div class="table-container bg-gray-50 rounded-lg p-2 shadow-inner">
+          <table class="w-full border-collapse" id="meetingsTable">
+            <thead>
+              <tr class="bg-gray-200 text-left">
+                <th class="p-2 border sortable">
+                  Company <span class="sort-indicator"></span>
+                </th>
+                <th class="p-2 border sortable">
+                  Meeting With <span class="sort-indicator"></span>
+                </th>
+                <th class="p-2 border sortable">
+                  Medium <span class="sort-indicator"></span>
+                </th>
+                <th class="p-2 border sortable">
+                  Meeting Date <span class="sort-indicator"></span>
+                </th>
+                <th class="p-2 border sortable">
+                  Outcome <span class="sort-indicator"></span>
+                </th>
+                <th class="p-2 border sortable">
+                  Next Meeting <span class="sort-indicator"></span>
+                </th>
+                <th class="p-2 border sortable">
+                  Next Topic <span class="sort-indicator"></span>
+                </th>
+                <th class="p-2 border sortable">
+                  Participants <span class="sort-indicator"></span>
+                </th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+
+          <p id="noMeetings" class="text-center mt-4 text-gray-500 hidden">
+            No meetings found.
+          </p>
+        </div>
+      </section>
+    </main>
+
+    <script>
+      const apiBase = "http://localhost:5000/api";
+      const token = localStorage.getItem("token");
+      const loadingText = document.getElementById("loadingText");
+      const refreshBtn = document.getElementById("refreshBtn");
+      const searchInput = document.getElementById("searchInput");
+      let meetingsData = [];
+      let currentSort = { column: null, asc: true };
+
+      if (!token) {
+        alert("Please login first");
+        window.location = "login.html";
+      }
+
+      document.getElementById("logoutBtn").addEventListener("click", () => {
+        localStorage.removeItem("token");
+        window.location = "login.html";
+      });
+
+      function formatLocalDateTime(dateStr) {
+        if (!dateStr) return "";
+        const date = new Date(dateStr);
+        const optionsDate = {
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit",
+        };
+        const optionsTime = { hour: "2-digit", minute: "2-digit" };
+        return `${date.toLocaleDateString(
+          undefined,
+          optionsDate
+        )} ${date.toLocaleTimeString(undefined, optionsTime)}`;
+      }
+
+      async function loadMeetings() {
+        try {
+          loadingText.classList.remove("hidden");
+          refreshBtn.disabled = true;
+          refreshBtn.classList.add("opacity-50", "cursor-not-allowed");
+
+          const res = await fetch(`${apiBase}/meetings`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+
+          if (!res.ok) throw new Error("Failed to fetch meetings");
+
+          meetingsData = await res.json();
+          renderTable(meetingsData);
+        } catch (err) {
+          console.error(err);
+          alert("Failed to load meetings");
+        } finally {
+          loadingText.classList.add("hidden");
+          refreshBtn.disabled = false;
+          refreshBtn.classList.remove("opacity-50", "cursor-not-allowed");
+        }
+      }
+
+      function renderTable(data) {
+        const tbody = document.querySelector("#meetingsTable tbody");
+        const noMeetings = document.getElementById("noMeetings");
+
+        tbody.innerHTML = "";
+        if (!data.length) {
+          noMeetings.classList.remove("hidden");
+          return;
+        }
+        noMeetings.classList.add("hidden");
+
+        data.forEach((m) => {
+          const tr = document.createElement("tr");
+          tr.classList.add("hover:bg-gray-50");
+          tr.innerHTML = `
+            <td class="p-2 border">${m.company_name || ""}</td>
+            <td class="p-2 border">${m.meeting_with || ""}</td>
+            <td class="p-2 border">${m.medium || ""}</td>
+            <td class="p-2 border">${formatLocalDateTime(m.meeting_date)}</td>
+            <td class="p-2 border">${m.outcome || ""}</td>
+            <td class="p-2 border">${formatLocalDateTime(
+              m.next_meeting_date
+            )}</td>
+            <td class="p-2 border">${m.next_meeting_topic || ""}</td>
+            <td class="p-2 border">${m.participants || ""}</td>
+          `;
+          tbody.appendChild(tr);
+        });
+      }
+
+      // Search filter
+      searchInput.addEventListener("input", () => {
+        const query = searchInput.value.toLowerCase();
+        const filtered = meetingsData.filter((m) =>
+          Object.values(m).some(
+            (val) =>
+              typeof val === "string" && val.toLowerCase().includes(query)
+          )
+        );
+        renderTable(filtered);
+      });
+
+      // Sorting
+      document.querySelectorAll("th.sortable").forEach((th, index) => {
+        th.addEventListener("click", () => sortTable(index, th));
+      });
+
+      function sortTable(index, th) {
+        const keyMap = [
+          "company_name",
+          "meeting_with",
+          "medium",
+          "meeting_date",
+          "outcome",
+          "next_meeting_date",
+          "next_meeting_topic",
+          "participants",
+        ];
+        const key = keyMap[index];
+        const asc = currentSort.column === key ? !currentSort.asc : true;
+        currentSort = { column: key, asc };
+
+        const sorted = [...meetingsData].sort((a, b) => {
+          let valA = a[key] || "";
+          let valB = b[key] || "";
+
+          if (key.includes("date")) {
+            valA = new Date(valA);
+            valB = new Date(valB);
+          }
+
+          if (valA > valB) return asc ? 1 : -1;
+          if (valA < valB) return asc ? -1 : 1;
+          return 0;
+        });
+
+        // update indicators
+        document
+          .querySelectorAll(".sort-indicator")
+          .forEach((el) => (el.textContent = ""));
+        th.querySelector(".sort-indicator").textContent = asc ? "▲" : "▼";
+
+        renderTable(sorted);
+      }
+
+      loadMeetings();
+    </script>
+  </body>
+</html>

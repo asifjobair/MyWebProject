@@ -1,0 +1,35 @@
+<div
+  id="notification"
+  class="fixed top-4 right-4 w-80 bg-blue-50 border-l-4 border-blue-600 text-blue-700 p-4 rounded shadow-lg hidden"
+>
+  <p class="font-medium">Upcoming Meeting!</p>
+  <p>
+    Meeting with <span id="meeting-person">Mr. John</span> at
+    <span id="meeting-time">10:30 AM</span>
+  </p>
+  <button
+    onclick="closeNotification()"
+    class="mt-2 bg-blue-600 text-white px-2 py-1 rounded hover:bg-blue-700"
+  >
+    Dismiss
+  </button>
+</div>
+
+<script>
+  // Show notification
+  function showNotification(person, time) {
+    document.getElementById("meeting-person").innerText = person;
+    document.getElementById("meeting-time").innerText = time;
+    document.getElementById("notification").classList.remove("hidden");
+  }
+
+  // Close notification
+  function closeNotification() {
+    document.getElementById("notification").classList.add("hidden");
+  }
+
+  // Example: show on page load
+  window.onload = () => {
+    showNotification("Mr. John", "10:30 AM");
+  };
+</script>

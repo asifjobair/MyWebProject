@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Register - Meeting Tracker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      html,
+      body {
+        height: 100%;
+      }
+      body {
+        font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto,
+          "Helvetica Neue", Arial;
+      }
+      .glass {
+        background: rgba(255, 255, 255, 0.06);
+        backdrop-filter: blur(8px) saturate(120%);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+      }
+      .bg-image {
+        background-position: center;
+        background-size: cover;
+        background-repeat: no-repeat;
+      }
+    </style>
+  </head>
+
+  <body class="min-h-screen bg-gray-900 flex items-center justify-center">
+    <!-- Background image -->
+    <div
+      class="absolute inset-0 bg-image"
+      style="background-image: url('assests/login.jpg'); filter: saturate(80%)"
+    ></div>
+
+    <!-- dark gradient overlay -->
+    <div
+      class="absolute inset-0 bg-gradient-to-b from-black/45 via-black/40 to-black/60"
+    ></div>
+
+    <div class="relative z-10 w-full max-w-md p-6">
+      <div class="glass rounded-2xl p-8 shadow-2xl">
+        <!-- logo header -->
+        <div class="flex items-center gap-4 mb-6">
+          <div
+            class="w-12 h-12 rounded-lg bg-white/10 flex items-center justify-center"
+          >
+            <svg
+              width="28"
+              height="28"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              class="text-white"
+            >
+              <rect
+                x="3"
+                y="4"
+                width="18"
+                height="16"
+                rx="2"
+                stroke="white"
+                stroke-opacity="0.9"
+                stroke-width="1.2"
+              />
+              <path
+                d="M8 2v4M16 2v4"
+                stroke="white"
+                stroke-opacity="0.9"
+                stroke-width="1.2"
+                stroke-linecap="round"
+              />
+              <path
+                d="M7 11h10"
+                stroke="white"
+                stroke-opacity="0.9"
+                stroke-width="1"
+                stroke-linecap="round"
+              />
+            </svg>
+          </div>
+          <div>
+            <h1 class="text-white text-xl font-semibold">Meeting Tracker</h1>
+            <p class="text-white/70 text-sm">Create your account</p>
+          </div>
+        </div>
+
+        <!-- Register form -->
+        <form id="register-form" class="space-y-4">
+          <input
+            type="text"
+            name="name"
+            required
+            placeholder="Full Name"
+            class="w-full p-3 rounded-lg bg-white/10 placeholder-white/60 text-white border border-white/10 outline-none focus:ring-2 focus:ring-blue-400"
+          />
+
+          <input
+            type="email"
+            name="email"
+            required
+            placeholder="Email Address"
+            class="w-full p-3 rounded-lg bg-white/10 placeholder-white/60 text-white border border-white/10 outline-none focus:ring-2 focus:ring-blue-400"
+          />
+
+          <input
+            type="password"
+            name="password"
+            required
+            placeholder="Password"
+            class="w-full p-3 rounded-lg bg-white/10 placeholder-white/60 text-white border border-white/10 outline-none focus:ring-2 focus:ring-blue-400"
+          />
+
+          <button
+            type="submit"
+            class="w-full py-3 rounded-lg bg-gradient-to-r from-green-500 to-emerald-500 font-semibold text-white shadow-lg hover:scale-[1.01] active:scale-100 transition-transform"
+          >
+            Register
+          </button>
+        </form>
+
+        <p class="text-center text-sm text-white/70 mt-4">
+          Already have an account?
+          <a href="login.html" class="text-blue-300 hover:underline">Login</a>
+        </p>
+
+        <div class="mt-6 text-center text-xs text-white/50">
+          Use your work email for secure access.
+        </div>
+      </div>
+
+      <div class="mt-4 text-center text-white/40 text-xs">
+        © <span id="year"></span> Meeting Tracker
+      </div>
+    </div>
+
+    <script>
+      document.getElementById("year").textContent = new Date().getFullYear();
+
+      const form = document.getElementById("register-form");
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const name = form.name.value;
+        const email = form.email.value;
+        const password = form.password.value;
+
+        try {
+          const res = await fetch("http://localhost:5000/api/auth/register", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ name, email, password }),
+          });
+
+          const data = await res.json();
+          if (res.ok) {
+            alert("Registration successful. Please login!");
+            window.location.href = "login.html";
+          } else {
+            alert(data.message);
+          }
+        } catch (err) {
+          console.error(err);
+          alert("Registration failed");
+        }
+      });
+    </script>
+  </body>
+</html>

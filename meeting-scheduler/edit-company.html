@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Edit Company</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      body {
+        font-family: "Inter", sans-serif;
+        background: #f0f4f8;
+      }
+      .glass-nav {
+        background: rgba(25, 60, 180, 0.85);
+        backdrop-filter: blur(12px);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+        transition: all 0.3s ease;
+        z-index: 50;
+      }
+      .glass-nav:hover {
+        backdrop-filter: blur(15px);
+      }
+      .logout-btn {
+        transition: all 0.3s ease;
+      }
+      .logout-btn:hover {
+        transform: scale(1.05);
+        background-color: #ef4444;
+      }
+      aside {
+        position: fixed;
+        top: 64px;
+        left: 0;
+        bottom: 0;
+        overflow-y: auto;
+      }
+      main {
+        margin-left: 16rem;
+        padding-top: 1.5rem;
+        padding-bottom: 1.5rem;
+      }
+      .contact-item {
+        background: #f9fafb;
+        padding: 0.75rem;
+        border-radius: 0.75rem;
+      }
+      .contact-item input {
+        font-size: 0.875rem;
+      }
+      #contactsWrap {
+        max-height: 60vh;
+        overflow-y: auto;
+        margin-top: 0.5rem;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Navbar -->
+    <header
+      class="glass-nav text-white px-6 py-4 flex justify-between items-center sticky top-0"
+    >
+      <div class="flex items-center gap-3">
+        <img
+          src="assests/logo.png"
+          alt="Logo"
+          class="w-10 h-10 rounded-full border border-white"
+        />
+        <h1 class="text-2xl font-bold tracking-wide">Edit Company</h1>
+      </div>
+      <button
+        id="logoutBtn"
+        class="logout-btn bg-red-500 hover:bg-red-600 px-4 py-2 rounded-full shadow-md"
+      >
+        Logout
+      </button>
+    </header>
+
+    <!-- Sidebar -->
+    <aside class="w-64 bg-white shadow-md p-4 space-y-4">
+      <nav class="space-y-2">
+        <a
+          href="index.html"
+          class="flex items-center gap-2 p-2 rounded hover:bg-blue-100"
+          >📊 Dashboard</a
+        >
+        <a href="meeting-minutes.html">📝 Meeting Minutes</a>
+        <a
+          href="add-meeting.html"
+          class="flex items-center gap-2 p-2 rounded hover:bg-blue-100"
+          >➕ Add Meeting</a
+        >
+        <a href="all-meeting-minutes.html">📘 All Minutes</a>
+        <a
+          href="meetings.html"
+          class="flex items-center gap-2 p-2 rounded hover:bg-blue-100"
+          >📑 All Meetings</a
+        >
+        <a
+          href="zoom-meeting.html"
+          class="flex items-center gap-2 p-2 rounded hover:bg-blue-100"
+          >🎥 New Zoom Meeting</a
+        >
+        <a
+          href="all-zoom-meetings.html"
+          class="flex items-center gap-2 p-2 rounded hover:bg-blue-100"
+          >🎥 All Zoom Meeting</a
+        >
+        <a
+          href="companies.html"
+          class="flex items-center gap-2 p-2 rounded hover:bg-blue-100"
+          >🏢 Companies</a
+        >
+        <a
+          href="users.html"
+          class="flex items-center gap-2 p-2 rounded hover:bg-blue-100"
+          >👥 Users</a
+        >
+      </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 p-6">
+      <section
+        class="max-w-3xl mx-auto bg-white shadow-lg rounded-2xl p-6 space-y-4"
+      >
+        <h2 class="text-xl font-bold text-gray-800">Edit Company</h2>
+        <form id="companyForm" class="space-y-4">
+          <input
+            id="companyName"
+            name="name"
+            placeholder="Company Name"
+            class="w-full border p-2 rounded focus:ring-2 focus:ring-blue-400"
+            required
+          />
+
+          <textarea
+            id="companyAddress"
+            name="address"
+            placeholder="Address"
+            class="w-full border p-2 rounded focus:ring-2 focus:ring-blue-400"
+          ></textarea>
+
+          <div id="contactsWrap">
+            <h3 class="font-semibold mb-2">Contact Persons</h3>
+          </div>
+
+          <div class="flex gap-2">
+            <button
+              type="button"
+              id="addContactBtn"
+              class="bg-gray-500 hover:bg-gray-600 text-white px-3 py-2 rounded-full shadow-md"
+            >
+              + Add Person
+            </button>
+            <button
+              type="submit"
+              class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-full shadow-md"
+            >
+              Save Changes
+            </button>
+          </div>
+        </form>
+      </section>
+    </main>
+
+    <script>
+      const token = localStorage.getItem("token");
+      if (!token) window.location = "login.html";
+
+      document.getElementById("logoutBtn").addEventListener("click", () => {
+        localStorage.removeItem("token");
+        window.location = "login.html";
+      });
+
+      // Get ID from URL
+      const params = new URLSearchParams(window.location.search);
+      const id = params.get("id");
+      if (!id) {
+        alert("No company id");
+        window.location = "companies.html";
+      }
+
+      async function loadCompany() {
+        try {
+          const res = await fetch(`http://localhost:5000/api/companies/${id}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          if (!res.ok) throw new Error("Not found");
+          const company = await res.json();
+
+          document.getElementById("companyName").value = company.name || "";
+          document.getElementById("companyAddress").value =
+            company.address || "";
+
+          const wrap = document.getElementById("contactsWrap");
+          wrap.innerHTML =
+            "<h3 class='font-semibold mb-2'>Contact Persons</h3>";
+
+          (company.contacts || []).forEach((ct) => {
+            const div = document.createElement("div");
+            div.className = "contact-item mb-3";
+            div.innerHTML = `
+            <input placeholder="Name" class="name border p-2 w-full mb-2 rounded" value="${
+              ct.name || ""
+            }" required />
+            <input placeholder="Designation" class="designation border p-2 w-full mb-2 rounded" value="${
+              ct.designation || ""
+            }" />
+            <input placeholder="Phone" class="phone border p-2 w-full mb-2 rounded" value="${
+              ct.phone || ""
+            }" />
+            <input placeholder="Email" class="email border p-2 w-full rounded" value="${
+              ct.email || ""
+            }" />
+          `;
+            wrap.appendChild(div);
+          });
+        } catch (err) {
+          console.error(err);
+          alert("Failed to load company");
+          window.location = "companies.html";
+        }
+      }
+
+      document.getElementById("addContactBtn").addEventListener("click", () => {
+        const wrap = document.getElementById("contactsWrap");
+        const div = document.createElement("div");
+        div.className = "contact-item mb-3";
+        div.innerHTML = `
+        <input placeholder="Name" class="name border p-2 w-full mb-2 rounded" required />
+        <input placeholder="Designation" class="designation border p-2 w-full mb-2 rounded" />
+        <input placeholder="Phone" class="phone border p-2 w-full mb-2 rounded" />
+        <input placeholder="Email" class="email border p-2 w-full rounded" />
+      `;
+        wrap.appendChild(div);
+      });
+
+      document
+        .getElementById("companyForm")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const name = document.getElementById("companyName").value.trim();
+          const address = document
+            .getElementById("companyAddress")
+            .value.trim();
+          const contacts = Array.from(
+            document.querySelectorAll(".contact-item")
+          ).map((div) => ({
+            name: div.querySelector(".name").value.trim(),
+            designation: div.querySelector(".designation").value.trim(),
+            phone: div.querySelector(".phone").value.trim(),
+            email: div.querySelector(".email").value.trim(),
+          }));
+
+          try {
+            const res = await fetch(
+              `http://localhost:5000/api/companies/${id}`,
+              {
+                method: "PUT",
+                headers: {
+                  "Content-Type": "application/json",
+                  Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({ name, address, contacts }),
+              }
+            );
+            if (!res.ok) throw new Error("Failed update");
+            alert("Company updated successfully!");
+            window.location = "companies.html";
+          } catch (err) {
+            console.error(err);
+            alert("Error updating company");
+          }
+        });
+
+      loadCompany();
+    </script>
+  </body>
+</html>

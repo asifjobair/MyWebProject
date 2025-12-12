@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Meeting Tracker - Dashboard</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      /* Navbar glass effect */
+      .glass-nav {
+        background: rgba(25, 60, 180, 0.8);
+        backdrop-filter: blur(10px);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+      }
+
+      .logout-btn {
+        transition: all 0.3s ease;
+      }
+
+      .logout-btn:hover {
+        transform: scale(1.05);
+      }
+
+      ::placeholder {
+        color: rgba(0, 0, 0, 0.5);
+      }
+
+      input,
+      select,
+      textarea {
+        color: #000;
+      }
+
+      /* Sidebar full height + improved design */
+      aside {
+        height: calc(100vh - 64px);
+        position: sticky;
+        top: 64px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        background: #ffffff;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        border-right: 1px solid #e5e7eb;
+      }
+
+      aside nav a {
+        transition: all 0.25s ease;
+      }
+
+      aside nav a:hover {
+        background-color: #e0e7ff;
+        transform: translateX(4px);
+      }
+
+      aside nav a.active {
+        background-color: #2563eb;
+        color: #fff;
+        font-weight: 600;
+      }
+
+      /* Modal overlay */
+      .modal-bg {
+        background: rgba(0, 0, 0, 0.45);
+        backdrop-filter: blur(4px);
+      }
+
+      /* Smooth shadow for cards */
+      .card {
+        background: #fff;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        transition: transform 0.2s ease;
+      }
+
+      .card:hover {
+        transform: translateY(-2px);
+      }
+    </style>
+  </head>
+
+  <body class="bg-gray-100 font-sans">
+    <!-- Navbar -->
+    <header
+      class="glass-nav text-white px-6 py-4 flex justify-between items-center sticky top-0 z-50"
+    >
+      <div class="flex items-center space-x-3">
+        <img
+          src="assests/logo.png"
+          alt="Logo"
+          class="w-8 h-8 rounded-full border border-white"
+        />
+        <h1 class="text-2xl font-bold tracking-wide">Meeting Tracker</h1>
+      </div>
+      <button
+        id="logoutBtn"
+        class="logout-btn bg-red-500 hover:bg-red-600 px-5 py-2 rounded-full font-semibold shadow-md"
+      >
+        Logout
+      </button>
+    </header>
+
+    <div class="flex min-h-screen">
+      <!-- Sidebar -->
+      <aside class="w-64 p-4">
+        <nav class="space-y-2">
+          <a
+            href="index.html"
+            class="block p-2 rounded-md hover:bg-blue-100 active"
+            >📊 Dashboard</a
+          >
+          <a
+            href="meeting-minutes.html"
+            class="block p-2 rounded-md hover:bg-blue-100"
+          >
+            📝 Meeting Minutes
+          </a>
+
+          <a
+            href="add-meeting.html"
+            class="block p-2 rounded-md hover:bg-blue-100"
+            >➕ Add Meeting</a
+          >
+          <a
+            href="all-meeting-minutes.html"
+            class="block p-2 rounded-md hover:bg-blue-100"
+            >📘 All Minutes</a
+          >
+          <a href="meetings.html" class="block p-2 rounded-md hover:bg-blue-100"
+            >📑 All Meetings</a
+          >
+          <a
+            href="zoom-meeting.html"
+            class="block p-2 rounded-md hover:bg-blue-100"
+            >🎥 New Zoom Meeting</a
+          >
+          <a
+            href="all-zoom-meetings.html"
+            class="block p-2 rounded-md hover:bg-blue-100"
+            >🎥 All Zoom Meeting</a
+          >
+
+          <a
+            href="companies.html"
+            class="block p-2 rounded-md hover:bg-blue-100"
+            >🏢 Companies</a
+          >
+          <a href="users.html" class="block p-2 rounded-md hover:bg-blue-100"
+            >👥 Users</a
+          >
+        </nav>
+      </aside>
+
+      <!-- Main Content -->
+      <main class="flex-1 p-6 overflow-y-auto">
+        <!-- Today Meetings -->
+        <section class="mb-8">
+          <h2 class="text-xl font-semibold mb-4 text-blue-800">
+            Today's Meetings
+          </h2>
+          <div class="card p-4">
+            <table class="w-full border-collapse">
+              <thead>
+                <tr class="bg-blue-100 text-left">
+                  <th class="p-2 border">Company</th>
+                  <th class="p-2 border">With</th>
+                  <th class="p-2 border">Medium</th>
+                  <th class="p-2 border">Time</th>
+                </tr>
+              </thead>
+              <tbody id="todayMeetings"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- Tomorrow Meetings -->
+        <section class="mb-8">
+          <h2 class="text-xl font-semibold mb-4 text-blue-800">
+            Tomorrow's Meetings
+          </h2>
+          <div class="card p-4">
+            <table class="w-full border-collapse">
+              <thead>
+                <tr class="bg-blue-100 text-left">
+                  <th class="p-2 border">Company</th>
+                  <th class="p-2 border">With</th>
+                  <th class="p-2 border">Medium</th>
+                  <th class="p-2 border">Time</th>
+                </tr>
+              </thead>
+              <tbody id="tomorrowMeetings"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- Next 7 Days Meetings -->
+        <section>
+          <h2 class="text-xl font-semibold mb-4 text-blue-800">
+            Next 7 Days Meetings
+          </h2>
+          <div
+            id="next7DaysMeetings"
+            class="grid grid-cols-7 gap-2 card p-4 overflow-x-auto"
+          ></div>
+        </section>
+      </main>
+    </div>
+
+    <!-- Modal -->
+    <div
+      id="meetingModal"
+      class="fixed inset-0 flex items-center justify-center hidden modal-bg z-50"
+    >
+      <div class="bg-white rounded-lg shadow-lg max-w-md w-full p-6 relative">
+        <button
+          id="closeModal"
+          class="absolute top-2 right-2 text-gray-600 hover:text-gray-900 font-bold"
+        >
+          ✖
+        </button>
+        <h3
+          class="text-lg font-semibold mb-2 text-blue-700"
+          id="modalCompany"
+        ></h3>
+        <p><strong>With:</strong> <span id="modalWith"></span></p>
+        <p><strong>Medium:</strong> <span id="modalMedium"></span></p>
+        <p><strong>Date & Time:</strong> <span id="modalDateTime"></span></p>
+        <p class="mt-2">
+          <strong>Discussed Matter:</strong> <span id="modalMatter"></span>
+        </p>
+
+        <p><strong>Outcome:</strong> <span id="modalOutcome"></span></p>
+
+        <p>
+          <strong>Next Meeting:</strong> <span id="modalNextMeeting"></span>
+        </p>
+        <p><strong>Next Topic:</strong> <span id="modalNextTopic"></span></p>
+      </div>
+    </div>
+
+    <script>
+      const apiBase = "http://localhost:5000/api";
+      const token = localStorage.getItem("token");
+      if (!token) window.location = "login.html";
+
+      // Logout
+      document.getElementById("logoutBtn").addEventListener("click", () => {
+        localStorage.removeItem("token");
+        window.location = "login.html";
+      });
+
+      // Modal handling
+      const modal = document.getElementById("meetingModal");
+      const closeModalBtn = document.getElementById("closeModal");
+
+      closeModalBtn.addEventListener("click", () => {
+        modal.classList.add("hidden");
+      });
+
+      function showModal(meeting) {
+        document.getElementById("modalCompany").innerText =
+          meeting.company_name;
+        document.getElementById("modalWith").innerText =
+          meeting.meeting_with || "-";
+        document.getElementById("modalMedium").innerText =
+          meeting.medium || "-";
+        document.getElementById("modalDateTime").innerText =
+          meeting.date + " " + (meeting.time || "");
+        document.getElementById("modalMatter").innerText =
+          meeting.discussed_matter || "-";
+        document.getElementById("modalOutcome").innerText =
+          meeting.outcome || "-";
+        document.getElementById("modalNextMeeting").innerText =
+          meeting.next_meeting_date || "-";
+        document.getElementById("modalNextTopic").innerText =
+          meeting.next_meeting_topic || "-";
+        modal.classList.remove("hidden");
+      }
+
+      async function loadMeetings() {
+        try {
+          const res = await fetch(`${apiBase}/meetings/grouped`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          if (!res.ok) throw new Error("Failed to fetch meetings");
+
+          const data = await res.json();
+
+          function renderRows(meetings) {
+            if (!meetings || meetings.length === 0) {
+              return `<tr><td class="p-2 border text-center text-gray-500" colspan="4">No meetings scheduled</td></tr>`;
+            }
+            return meetings
+              .map(
+                (m) => `
+                  <tr class="hover:bg-blue-50 cursor-pointer" onclick='showModal(${JSON.stringify(
+                    m
+                  )})'>
+                    <td class="p-2 border">${m.company_name}</td>
+                    <td class="p-2 border">${m.meeting_with || "-"}</td>
+                    <td class="p-2 border">${m.medium || "-"}</td>
+                    <td class="p-2 border">${m.time || "-"}</td>
+                  </tr>`
+              )
+              .join("");
+          }
+
+          document.getElementById("todayMeetings").innerHTML = renderRows(
+            data.today
+          );
+          document.getElementById("tomorrowMeetings").innerHTML = renderRows(
+            data.tomorrow
+          );
+
+          // Next 7 days
+          const next7Container = document.getElementById("next7DaysMeetings");
+          next7Container.innerHTML = "";
+
+          function formatDateDisplay(dateStr) {
+            const d = new Date(dateStr);
+            return `${d.toLocaleDateString(undefined, {
+              weekday: "short",
+            })}<br>${d.getDate()}`;
+          }
+
+          const today = new Date();
+          const next7Dates = Array.from({ length: 7 }, (_, i) => {
+            const d = new Date();
+            d.setDate(today.getDate() + i);
+            return d.toISOString().split("T")[0];
+          });
+
+          next7Dates.forEach((date) => {
+            const meetingsForDate = data.next7days.filter(
+              (m) => m.date === date
+            );
+            const dayDiv = document.createElement("div");
+            dayDiv.className =
+              "border rounded p-2 min-h-[120px] flex flex-col bg-gray-50 hover:shadow-md transition";
+
+            const dayHeader = document.createElement("div");
+            dayHeader.className =
+              "font-semibold text-center mb-2 bg-blue-200 rounded py-1 text-sm text-blue-900";
+            dayHeader.innerHTML = formatDateDisplay(date);
+            dayDiv.appendChild(dayHeader);
+
+            if (meetingsForDate.length === 0) {
+              const noMeetings = document.createElement("p");
+              noMeetings.className =
+                "text-gray-500 text-sm text-center mt-4 flex-1";
+              noMeetings.innerText = "No meetings";
+              dayDiv.appendChild(noMeetings);
+            } else {
+              meetingsForDate.forEach((m) => {
+                const meetingItem = document.createElement("div");
+                meetingItem.className =
+                  "bg-white rounded shadow p-1 mb-1 text-xs border-l-4 border-blue-500 cursor-pointer hover:bg-blue-50";
+                meetingItem.innerHTML = `
+                  <p class="font-semibold">${m.company_name}</p>
+                  <p class="text-gray-600">${m.meeting_with || "-"}</p>
+                  <p class="text-gray-500 text-right">${m.time}</p>`;
+                meetingItem.addEventListener("click", () => showModal(m));
+                dayDiv.appendChild(meetingItem);
+              });
+            }
+
+            next7Container.appendChild(dayDiv);
+          });
+        } catch (err) {
+          console.error(err);
+          alert("Failed to load meetings");
+        }
+      }
+
+      loadMeetings();
+    </script>
+  </body>
+</html>

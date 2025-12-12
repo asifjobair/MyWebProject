@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>All Zoom Meetings</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- EmailJS v4 Global SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+
+    <style>
+      body {
+        font-family: "Inter", sans-serif;
+        background: #f0f4f8;
+      }
+      .glass-nav {
+        background: rgba(25, 60, 180, 0.85);
+        backdrop-filter: blur(12px);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+      }
+      aside {
+        position: fixed;
+        top: 64px;
+        left: 0;
+        bottom: 0;
+        overflow-y: auto;
+        background: linear-gradient(180deg, #fff, #f8fafc);
+        border-right: 1px solid #e5e7eb;
+      }
+      aside a {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 0.75rem;
+        border-radius: 0.5rem;
+        color: #374151;
+        font-weight: 500;
+        transition: 0.2s;
+      }
+      aside a:hover {
+        background: #e0e7ff;
+        transform: translateX(4px);
+      }
+      aside a.active {
+        background: #2563eb;
+        color: white;
+      }
+      main {
+        margin-left: 16rem;
+        padding: 1.5rem;
+      }
+      .table-container {
+        overflow-x: auto;
+        max-height: 75vh;
+      }
+      .modal-bg {
+        background: rgba(0, 0, 0, 0.5);
+      }
+      .email-modal-container {
+        max-width: 600px;
+        background-color: #ffffff;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+      }
+      .email-modal-header {
+        background: linear-gradient(90deg, #4f46e5, #2563eb);
+        color: #fff;
+        padding: 20px;
+        text-align: center;
+      }
+      .email-modal-body {
+        padding: 20px;
+      }
+      .email-modal-body input,
+      .email-modal-body textarea {
+        width: 100%;
+        padding: 10px;
+        margin-bottom: 12px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+      }
+      .email-modal-footer {
+        padding: 15px 20px;
+        text-align: right;
+      }
+      .email-modal-footer button {
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-weight: 600;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Header -->
+    <header
+      class="glass-nav text-white px-6 py-4 flex justify-between items-center sticky top-0 z-50 h-16"
+    >
+      <div class="flex items-center gap-3">
+        <img
+          src="assests/logo.png"
+          class="w-10 h-10 rounded-full border border-white"
+        />
+        <h1 class="text-2xl font-bold tracking-wide">Meeting Scheduler</h1>
+      </div>
+      <button
+        id="logoutBtn"
+        class="logout-btn bg-red-500 hover:bg-red-600 px-4 py-2 rounded-full font-semibold shadow-md"
+      >
+        Logout
+      </button>
+    </header>
+
+    <!-- Sidebar -->
+    <aside class="w-64 p-4 space-y-4 shadow-md">
+      <nav class="space-y-2">
+        <a href="index.html">📊 Dashboard</a>
+        <a href="meeting-minutes.html">📝 Add Meeting Minutes</a>
+        <a href="add-meeting.html">➕ Add Meeting</a>
+        <a href="meetings.html">📑 All Meetings</a>
+        <a href="all-meeting-minutes.html">📘 All Minutes</a>
+        <a href="zoom-meeting.html">🎥 Zoom Meetings</a>
+        <a href="all-zoom-meetings.html" class="active">🌐 All Zoom Meetings</a>
+        <a href="companies.html">🏢 Companies</a>
+        <a href="users.html">👥 Users</a>
+      </nav>
+    </aside>
+
+    <!-- Main -->
+    <main>
+      <section class="max-w-5xl mx-auto bg-white shadow-lg rounded-2xl p-6">
+        <h2 class="text-xl font-bold text-gray-800 mb-4">All Zoom Meetings</h2>
+        <div class="table-container">
+          <table
+            class="min-w-full table-auto border-collapse border border-gray-200"
+          >
+            <thead>
+              <tr class="bg-gray-100">
+                <th class="border border-gray-300 px-4 py-2 text-left">
+                  Topic
+                </th>
+                <th class="border border-gray-300 px-4 py-2 text-left">
+                  Start Time
+                </th>
+                <th class="border border-gray-300 px-4 py-2 text-left">
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody id="meetingTableBody"></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+
+    <!-- Email Modal -->
+    <div
+      id="emailModal"
+      class="hidden fixed inset-0 flex items-center justify-center modal-bg z-50"
+    >
+      <div class="email-modal-container">
+        <div class="email-modal-header"><h3>Send Zoom Link via Email</h3></div>
+        <div class="email-modal-body">
+          <input id="toEmail" type="email" placeholder="To" />
+          <input id="ccEmail" type="text" placeholder="CC (comma separated)" />
+          <input
+            id="bccEmail"
+            type="text"
+            placeholder="BCC (comma separated)"
+          />
+          <input id="subjectEmail" type="text" placeholder="Subject" />
+          <textarea id="bodyEmail" placeholder="Body" rows="6"></textarea>
+        </div>
+        <div class="email-modal-footer">
+          <button id="closeModal" class="bg-gray-300 hover:bg-gray-400">
+            Close
+          </button>
+          <button
+            id="sendEmailBtn"
+            class="bg-blue-600 text-white hover:bg-blue-700"
+          >
+            Send
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const token = localStorage.getItem("token");
+      if (!token) {
+        alert("Please login first");
+        window.location = "login.html";
+      }
+      document.getElementById("logoutBtn").onclick = () => {
+        localStorage.removeItem("token");
+        window.location = "login.html";
+      };
+
+      // Initialize EmailJS (v4 global)
+      emailjs.init("HV8XpCCW0Azbm9Hi7");
+
+      async function loadAllZoomMeetings() {
+        try {
+          const res = await fetch("http://localhost:5000/api/zoom/meetings", {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          const data = await res.json();
+          const tbody = document.getElementById("meetingTableBody");
+          tbody.innerHTML = "";
+          if (!data.length) {
+            tbody.innerHTML = `<tr><td colspan="3" class="text-gray-500 text-center py-4">No Zoom meetings found</td></tr>`;
+            return;
+          }
+
+          data.forEach((m) => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+                  <td class="border border-gray-300 px-4 py-2">${m.topic}</td>
+                  <td class="border border-gray-300 px-4 py-2">${new Date(
+                    m.start_time
+                  ).toLocaleString()}</td>
+                  <td class="border border-gray-300 px-4 py-2 flex gap-2">
+                    <button class="copyBtn bg-blue-100 text-blue-800 px-2 py-1 rounded hover:bg-blue-200">📋</button>
+                    <button class="emailBtn bg-green-100 text-green-800 px-2 py-1 rounded hover:bg-green-200">📧</button>
+                  </td>`;
+            tbody.appendChild(tr);
+
+            tr.querySelector(".copyBtn").onclick = () => {
+              navigator.clipboard.writeText(m.join_url);
+              alert("Zoom link copied!");
+            };
+
+            tr.querySelector(".emailBtn").onclick = () => {
+              document.getElementById("emailModal").classList.remove("hidden");
+              document.getElementById("toEmail").value = "";
+              document.getElementById("ccEmail").value = "";
+              document.getElementById("bccEmail").value = "";
+              document.getElementById(
+                "subjectEmail"
+              ).value = `Zoom Meeting: ${m.topic}`;
+              document.getElementById(
+                "bodyEmail"
+              ).value = `Join the Zoom meeting: ${m.join_url}`;
+              document.getElementById("sendEmailBtn").dataset.link = m.join_url;
+            };
+          });
+        } catch (err) {
+          console.error(err);
+          alert("Failed to load Zoom meetings");
+        }
+      }
+
+      loadAllZoomMeetings();
+
+      document.getElementById("closeModal").onclick = () => {
+        document.getElementById("emailModal").classList.add("hidden");
+      };
+
+      document.getElementById("sendEmailBtn").onclick = () => {
+        const sendBtn = document.getElementById("sendEmailBtn");
+        const to = document.getElementById("toEmail").value;
+        const cc = document.getElementById("ccEmail").value;
+        const bcc = document.getElementById("bccEmail").value;
+        const subject = document.getElementById("subjectEmail").value;
+        const body = document.getElementById("bodyEmail").value;
+        const zoomLink = document.getElementById("sendEmailBtn").dataset.link;
+        const topic = subject.replace("Zoom Meeting: ", "");
+        const dateTime = new Date().toLocaleString();
+
+        if (!to) return alert("To field is required");
+        sendBtn.disabled = true;
+        sendBtn.textContent = "Sending...";
+
+        emailjs
+          .send(
+            "service_zhs8w4h",
+            "template_6ek3pb5",
+            {
+              email: to,
+              cc_email: cc, // template variable
+              bcc_email: bcc, // template variable
+              subject: subject,
+              topic: topic,
+              date_time: dateTime,
+              zoom_link: zoomLink,
+              body: body,
+            },
+            {
+              headers: {
+                Cc: cc,
+                Bcc: bcc,
+              },
+            }
+          )
+          .then(() => {
+            alert("Email sent successfully!");
+            document.getElementById("emailModal").classList.add("hidden");
+          })
+          .catch((err) => {
+            console.error("EmailJS error:", err);
+            alert("Failed to send email");
+          })
+          .finally(() => {
+            sendBtn.disabled = false;
+            sendBtn.textContent = "Send";
+          });
+      };
+    </script>
+  </body>
+</html>

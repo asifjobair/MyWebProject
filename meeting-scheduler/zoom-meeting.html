@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Zoom Meetings</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      body {
+        font-family: "Inter", sans-serif;
+        background: #f0f4f8;
+      }
+      .glass-nav {
+        background: rgba(25, 60, 180, 0.85);
+        backdrop-filter: blur(12px);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+      }
+      aside {
+        position: fixed;
+        top: 64px;
+        left: 0;
+        bottom: 0;
+        overflow-y: auto;
+        background: linear-gradient(180deg, #fff, #f8fafc);
+        border-right: 1px solid #e5e7eb;
+      }
+      aside a {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 0.75rem;
+        border-radius: 0.5rem;
+        color: #374151;
+        font-weight: 500;
+        transition: 0.2s;
+      }
+      aside a:hover {
+        background: #e0e7ff;
+        transform: translateX(4px);
+      }
+      aside a.active {
+        background: #2563eb;
+        color: white;
+      }
+      main {
+        margin-left: 16rem;
+        padding: 1.5rem;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Header -->
+    <header
+      class="glass-nav text-white px-6 py-4 flex justify-between items-center sticky top-0 z-50 h-16"
+    >
+      <div class="flex items-center gap-3">
+        <img
+          src="assests/logo.png"
+          class="w-10 h-10 rounded-full border border-white"
+        />
+        <h1 class="text-2xl font-bold tracking-wide">Meeting Scheduler</h1>
+      </div>
+      <button
+        id="logoutBtn"
+        class="logout-btn bg-red-500 hover:bg-red-600 px-4 py-2 rounded-full font-semibold shadow-md"
+      >
+        Logout
+      </button>
+    </header>
+
+    <!-- Sidebar -->
+    <aside class="w-64 p-4 space-y-4 shadow-md">
+      <nav class="space-y-2">
+        <a href="index.html">📊 Dashboard</a>
+        <a href="meeting-minutes.html">📝 Add Meeting Minutes</a>
+        <a href="add-meeting.html">➕ Add Meeting</a>
+        <a href="meetings.html">📑 All Meetings</a>
+        <a href="all-meeting-minutes.html">📘 All Minutes</a>
+        <a href="zoom-meeting.html" class="active">🎥 Zoom Meetings</a>
+
+        <a href="all-zoom-meetings.html">🎥 All Zoom Meeting</a>
+        <a href="companies.html">🏢 Companies</a>
+        <a href="users.html">👥 Users</a>
+      </nav>
+    </aside>
+
+    <!-- Main -->
+    <main>
+      <section class="max-w-3xl mx-auto bg-white shadow-lg rounded-2xl p-6">
+        <h2 class="text-xl font-bold text-gray-800 mb-4">
+          Create Zoom Meeting
+        </h2>
+
+        <div class="space-y-4">
+          <input
+            id="topic"
+            placeholder="Meeting Topic"
+            class="border border-gray-300 rounded-lg p-3 w-full focus:outline-none focus:ring-2 focus:ring-blue-400"
+          />
+          <input
+            id="dateTime"
+            type="datetime-local"
+            class="border border-gray-300 rounded-lg p-3 w-full focus:outline-none focus:ring-2 focus:ring-blue-400"
+          />
+          <button
+            id="createBtn"
+            class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded-lg shadow"
+          >
+            Create Meeting
+          </button>
+        </div>
+
+        <ul id="meetingList" class="mt-3 space-y-2"></ul>
+      </section>
+    </main>
+
+    <script>
+      const token = localStorage.getItem("token");
+      if (!token) {
+        alert("Please login first");
+        window.location = "login.html";
+      }
+
+      const createBtn = document.getElementById("createBtn");
+
+      document.getElementById("logoutBtn").onclick = () => {
+        localStorage.removeItem("token");
+        window.location = "login.html";
+      };
+
+      // Create new Zoom meeting
+      createBtn.onclick = async () => {
+        const topic = document.getElementById("topic").value;
+        const dateTime = document.getElementById("dateTime").value;
+        if (!topic || !dateTime) return alert("Please fill all fields");
+
+        // Disable button to prevent multiple clicks
+        createBtn.disabled = true;
+        createBtn.classList.add("opacity-50", "cursor-not-allowed");
+
+        try {
+          const res = await fetch("http://localhost:5000/api/zoom/meeting", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({
+              topic,
+              start_time: new Date(dateTime).toISOString(),
+              type: 2,
+            }),
+          });
+          const data = await res.json();
+          if (data.meeting?.join_url) {
+            // Notification only
+            const m = data.meeting;
+            const list = document.getElementById("meetingList");
+            const li = document.createElement("li");
+            li.className = "bg-green-100 text-green-800 px-4 py-2 rounded-md";
+            li.innerHTML = `✅ New meeting created: <strong>${
+              m.topic
+            }</strong> at <em>${new Date(m.start_time).toLocaleString()}</em>`;
+            list.prepend(li);
+
+            // Auto-remove notification after 5 seconds
+            setTimeout(() => li.remove(), 5000);
+
+            // Clear inputs
+            document.getElementById("topic").value = "";
+            document.getElementById("dateTime").value = "";
+          } else {
+            alert("Failed to create meeting");
+          }
+        } catch (err) {
+          console.error(err);
+          alert("Error creating meeting");
+        } finally {
+          // Re-enable button
+          createBtn.disabled = false;
+          createBtn.classList.remove("opacity-50", "cursor-not-allowed");
+        }
+      };
+    </script>
+  </body>
+</html>
